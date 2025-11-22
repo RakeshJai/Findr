@@ -1,25 +1,37 @@
-// TO USE A REAL DATABASE:
-// 1. Go to console.firebase.google.com
-// 2. Create a new project
-// 3. Register a web app
-// 4. Paste the configuration below
-// 5. Update storageService.ts to use these functions instead of localStorage
-
-/*
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { getFirestore } from 'firebase/firestore';
+
+// TO SET UP FIREBASE:
+// 1. Go to console.firebase.google.com
+// 2. Create a new project (or use existing)
+// 3. Enable Firestore Database (Create database → Start in test mode)
+// 4. Register a web app (click the </> icon)
+// 5. Copy your Firebase config and replace the values below
+// 6. Set isFirebaseEnabled to true once configured
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyC3fz0TVXco2vam7qhJckgU_5Is4MBWyjQ",
+  authDomain: "findr-bfb3a.firebaseapp.com",
+  projectId: "findr-bfb3a",
+  storageBucket: "findr-bfb3a.firebasestorage.app",
+  messagingSenderId: "937277964846",
+  appId: "1:937277964846:web:646b9e8abecc306015d5bf"
 };
 
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
-*/
+// Firebase is now enabled and configured
+export const isFirebaseEnabled = true;
 
-export const isFirebaseEnabled = false;
+// Initialize Firebase only if enabled
+let app;
+let db;
+
+if (isFirebaseEnabled) {
+  try {
+    app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+  } catch (error) {
+    console.error('Firebase initialization error:', error);
+  }
+}
+
+export { db };
