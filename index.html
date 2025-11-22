@@ -10,6 +10,31 @@
         darkMode: 'class',
         theme: {
           extend: {
+            fontFamily: {
+              'map': ['"Cinzel"', 'serif'],
+              'body': ['"Inter"', 'sans-serif'],
+            },
+            colors: {
+              coffee: {
+                50: '#fdf8f6',
+                100: '#f2e8e5',
+                200: '#eaddd7',
+                300: '#e0cec7',
+                400: '#d2bab0',
+                500: '#a09a95',
+                600: '#8a817c', // Text secondary
+                700: '#432818', // Coffee Bean (Dark)
+                800: '#2f1b12',
+                900: '#180e09',
+              },
+              parchment: {
+                50: '#fdf6e3', // Light parchment
+                100: '#f9f1dc',
+                200: '#eee8d5',
+                800: '#5c534b', // Ink color
+                900: '#3c3836',
+              }
+            },
             animation: {
               'float': 'float 5s ease-in-out infinite',
               'float-delayed': 'float 5s ease-in-out 2.5s infinite',
@@ -21,7 +46,7 @@
             keyframes: {
               float: {
                 '0%, 100%': { transform: 'translateY(0)' },
-                '50%': { transform: 'translateY(-10px)' },
+                '50%': { transform: 'translateY(-8px)' },
               },
               slideUp: {
                 '0%': { transform: 'translateY(20px)', opacity: '0' },
@@ -40,10 +65,13 @@
         }
       }
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
       body {
         font-family: 'Inter', sans-serif;
+      }
+      h1, h2, h3, .font-map {
+        font-family: 'Cinzel', serif;
       }
       /* Hide scrollbar for Chrome, Safari and Opera */
       .no-scrollbar::-webkit-scrollbar {
@@ -55,20 +83,21 @@
           scrollbar-width: none;  /* Firefox */
       }
     </style>
-  <script type="importmap">
+<script type="importmap">
 {
   "imports": {
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
     "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/"
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
+    "vite": "https://aistudiocdn.com/vite@^7.2.4",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1"
   }
 }
 </script>
-<link rel="stylesheet" href="/index.css">
 </head>
-  <body class="bg-slate-50 text-slate-900 antialiased transition-colors duration-200">
+  <body class="bg-parchment-50 text-coffee-900 antialiased transition-colors duration-200 selection:bg-amber-200 selection:text-coffee-900">
     <div id="root"></div>
-  <script type="module" src="/index.tsx"></script>
-</body>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
