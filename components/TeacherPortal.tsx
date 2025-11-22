@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Trash2, Plus, X, Save, Image as ImageIcon, UserCheck, CheckCircle } from 'lucide-react';
 import { LostItem, Category } from '../types';
 import { fileToBase64 } from '../services/storageService';
@@ -11,6 +11,8 @@ interface TeacherPortalProps {
 
 export const TeacherPortal: React.FC<TeacherPortalProps> = ({ items, onAdd, onDelete }) => {
   const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Upload Form State
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -21,11 +23,39 @@ export const TeacherPortal: React.FC<TeacherPortalProps> = ({ items, onAdd, onDe
   });
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setError(null);
     if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const base64 = await fileToBase64(file);
-      setSelectedImage(base64);
-      setIsUploading(true);
+      try {
+        const file = e.target.files[0];
+        
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+          setError('Please select a valid image file');
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+          return;
+        }
+        
+        // Validate file size (max 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+          setError('Image is too large. Please use an image smaller than 10MB');
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+          return;
+        }
+        
+        const base64 = await fileToBase64(file);
+        setSelectedImage(base64);
+        setIsUploading(true);
+      } catch (err) {
+        console.error('Error processing image:', err);
+        setError('Failed to process image. Please try again.');
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      }
     }
   };
 
@@ -49,7 +79,11 @@ export const TeacherPortal: React.FC<TeacherPortalProps> = ({ items, onAdd, onDe
   const resetForm = () => {
     setIsUploading(false);
     setSelectedImage(null);
+    setError(null);
     setFormData({ item_name: '', description: '', category: Category.OTHER });
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   return (
@@ -61,7 +95,14 @@ export const TeacherPortal: React.FC<TeacherPortalProps> = ({ items, onAdd, onDe
           <label className="flex items-center gap-2 px-5 py-2.5 bg-amber-700 text-white rounded-xl font-bold cursor-pointer hover:bg-amber-800 transition-colors shadow-md hover:shadow-lg hover:-translate-y-0.5 duration-200">
             <Plus className="w-5 h-5" />
             <span>Add Item</span>
-            <input type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
+            <input 
+              ref={fileInputRef}
+              type="file" 
+              accept="image/*" 
+              capture="environment"
+              className="hidden" 
+              onChange={handleFileSelect} 
+            />
           </label>
         )}
       </div>
@@ -95,6 +136,11 @@ export const TeacherPortal: React.FC<TeacherPortalProps> = ({ items, onAdd, onDe
 
             {/* Form Fields */}
             <div className="space-y-6">
+              {error && (
+                <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-xl text-sm font-medium">
+                  {error}
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-bold text-coffee-700 dark:text-stone-300 mb-2">Item Name</label>
                 <input
