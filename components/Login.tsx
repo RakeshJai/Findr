@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, AlertCircle, Map } from 'lucide-react';
+import { Lock, AlertCircle } from 'lucide-react';
 
 interface LoginProps {
   onLogin: () => void;
