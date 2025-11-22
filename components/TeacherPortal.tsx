@@ -11,6 +11,7 @@ interface TeacherPortalProps {
 
 export const TeacherPortal: React.FC<TeacherPortalProps> = ({ items, onAdd, onDelete }) => {
   const [isUploading, setIsUploading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -24,56 +25,103 @@ export const TeacherPortal: React.FC<TeacherPortalProps> = ({ items, onAdd, onDe
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setError(null);
-    if (e.target.files && e.target.files[0]) {
-      try {
-        const file = e.target.files[0];
-        
-        // Validate file type
-        if (!file.type.startsWith('image/')) {
-          setError('Please select a valid image file');
-          if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-          }
-          return;
+    const file = e.target.files?.[0];
+    
+    if (!file) {
+      return;
+    }
+
+    // Store file reference immediately to prevent loss
+    console.log('File selected:', { name: file.name, type: file.type, size: file.size });
+    
+    try {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setError('Please select a valid image file');
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
         }
-        
-        // Validate file size (max 10MB)
-        if (file.size > 10 * 1024 * 1024) {
-          setError('Image is too large. Please use an image smaller than 10MB');
-          if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-          }
-          return;
+        return;
+      }
+      
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        setError('Image is too large. Please use an image smaller than 10MB');
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
         }
-        
-        const base64 = await fileToBase64(file);
-        setSelectedImage(base64);
-        setIsUploading(true);
-      } catch (err) {
-        console.error('Error processing image:', err);
+        return;
+      }
+      
+      console.log('Converting file to base64...');
+      const base64 = await fileToBase64(file);
+      console.log('Base64 conversion complete, length:', base64?.length);
+      
+      // Validate that we got a valid base64 string
+      if (!base64 || !base64.startsWith('data:image/')) {
+        console.error('Invalid base64 result:', base64?.substring(0, 50));
         setError('Failed to process image. Please try again.');
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
         }
+        return;
+      }
+      
+      console.log('Image processed successfully, setting state');
+      setSelectedImage(base64);
+      setIsUploading(true);
+      console.log('State updated, isUploading should be true');
+    } catch (err) {
+      console.error('Error processing image:', err);
+      setError('Failed to process image. Please try again.');
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
       }
     }
   };
 
-  const handleSave = () => {
-    if (!selectedImage) return;
+  const handleSave = async () => {
+    console.log('handleSave called', { 
+      hasImage: !!selectedImage, 
+      imageLength: selectedImage?.length,
+      itemName: formData.item_name,
+      description: formData.description 
+    });
 
-    const newItem: LostItem = {
-      id: crypto.randomUUID(),
-      item_name: formData.item_name,
-      description: formData.description,
-      category: formData.category,
-      image_url: selectedImage,
-      uploaded_by: 'teacher-user',
-      timestamp: Date.now()
-    };
+    if (!selectedImage) {
+      setError('Please select an image first');
+      return;
+    }
 
-    onAdd(newItem);
-    resetForm();
+    if (!formData.item_name.trim() || !formData.description.trim()) {
+      setError('Please fill in all required fields');
+      return;
+    }
+
+    setIsSaving(true);
+    setError(null);
+
+    try {
+      const newItem: LostItem = {
+        id: crypto.randomUUID(),
+        item_name: formData.item_name.trim(),
+        description: formData.description.trim(),
+        category: formData.category,
+        image_url: selectedImage,
+        uploaded_by: 'teacher-user',
+        timestamp: Date.now()
+      };
+
+      console.log('Saving item:', { id: newItem.id, name: newItem.item_name, hasImage: !!newItem.image_url, imageUrlLength: newItem.image_url.length });
+      await onAdd(newItem);
+      console.log('Item saved successfully');
+      resetForm();
+    } catch (err) {
+      console.error('Error saving item:', err);
+      setError('Failed to save item. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const resetForm = () => {
@@ -179,11 +227,11 @@ export const TeacherPortal: React.FC<TeacherPortalProps> = ({ items, onAdd, onDe
               <div className="pt-4 flex gap-4">
                 <button
                   onClick={handleSave}
-                  disabled={!formData.item_name || !formData.description}
+                  disabled={!formData.item_name || !formData.description || !selectedImage || isSaving}
                   className="flex-1 bg-amber-700 hover:bg-amber-800 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
                 >
                   <Save className="w-4 h-4" />
-                  Save Item
+                  {isSaving ? 'Saving...' : 'Save Item'}
                 </button>
                 <button
                   onClick={resetForm}

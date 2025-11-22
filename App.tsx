@@ -47,8 +47,13 @@ const App: React.FC = () => {
 
   // Handlers for data manipulation
   const handleAddItem = async (item: LostItem) => {
-    await saveItem(item);
-    await loadItems(); // Refresh state from "DB"
+    try {
+      await saveItem(item);
+      await loadItems(); // Refresh state from "DB"
+    } catch (error) {
+      console.error('Error adding item:', error);
+      throw error; // Re-throw so TeacherPortal can handle it
+    }
   };
 
   const handleDeleteItem = async (id: string) => {
